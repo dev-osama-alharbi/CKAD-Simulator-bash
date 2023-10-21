@@ -1,0 +1,82 @@
+#!/bin/bash
+
+function question() {
+    echo "Create a single Pod of image httpd:2.4.41-alpine in Namespace default.
+     The Pod should be named pod1 and the container should be named pod1-container."
+}
+
+function answer() {
+    echo "kubectl -n default run pod1 --image httpd:2.4.41-alpine --dry-run=client -o yaml > 01.yaml
+vi 01.yaml
+
+######################## Start File 01.yaml #################################
+|> apiVersion: v1
+|> kind: Pod
+|> metadata:
+|>   creationTimestamp: null
+|>   labels:
+|>     run: pod1
+|>   name: pod1
+|> spec:
+|>   containers:
+|>   - image: httpd:2.4.41-alpine
+|>     name: pod1-container    # <<<<----------- [change]
+|>     resources: {}
+|>   dnsPolicy: ClusterFirst
+|>   restartPolicy: Always
+|> status: {}
+######################## End File 01.yaml   #################################
+
+kubectl apply -f 01.yaml
+"
+}
+
+function error() {
+  if [ "$(sc_1)" == "0" ]; then echo "[X] container image"; fi
+  if [ "$(sc_2)" == "0" ]; then echo "[X] namespace"; fi
+  if [ "$(sc_3)" == "0" ]; then echo "[X] pod name"; fi
+  if [ "$(sc_4)" == "0" ]; then echo "[X] container name"; fi
+}
+
+function score() {
+  sc=0
+  sc=$(( $sc + $(sc_1)))
+  sc=$(( $sc + $(sc_2)))
+  sc=$(( $sc + $(sc_3)))
+  sc=$(( $sc + $(sc_4)))
+
+  echo "your score is $sc of 4"
+}
+function sc_1() {
+    local r=$(kubectl -n default get pod pod1 -o custom-columns=:.spec.containers[0].image --no-headers)
+    if [ "$r" == "httpd:2.4.41-alpine" ]; then
+      echo 1
+    else
+      echo 0
+    fi
+}
+function sc_2() {
+    local r=$(kubectl -n default get pod pod1 -o custom-columns=:.metadata.namespace --no-headers)
+    if [ "$r" == "default" ]; then
+      echo 1
+    else
+      echo 0
+    fi
+}
+function sc_3() {
+    local r=$(kubectl -n default get pod pod1 -o custom-columns=:.metadata.name --no-headers)
+    if [ "$r" == "pod1" ]; then
+      echo 1
+    else
+      echo 0
+    fi
+}
+function sc_4() {
+    local r=$(kubectl -n default get pod pod1 -o custom-columns=:.spec.containers[0].name --no-headers)
+    if [ "$r" == "pod1-container" ]; then
+      echo 1
+    else
+      echo 0
+    fi
+}
+

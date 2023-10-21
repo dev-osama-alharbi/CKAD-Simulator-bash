@@ -1,0 +1,77 @@
+#!/bin/bash
+
+function help() {
+    echo ""
+    echo "COMMAND"
+    echo "   -i                    initialize question "
+    echo "   -q + [argQ]           print question "
+    echo "   -a + [argQ]           print answer"
+    echo "   -e + [argQ]           print error form your answer"
+    echo "   -r + [argQ]           print score for your answer"
+    echo ""
+    echo ""
+    echo "[argQ]  question number from 1 to 20"
+    echo ""
+}
+
+function isNumber {
+    re='^[0-9]+([.][0-9]+)?$'
+    if ! [[ $argQ =~ $re ]] ; then
+       echo "error: Not a number" >&2; exit 1
+    fi
+}
+
+function checkScriptExist {
+    if ! [ -e "questions/Q${argQ}" ] ; then
+       echo "error: question not found" >&2; exit 1
+    fi
+    if ! [ -f "questions/Q${argQ}" ] ; then
+       echo "error: question not found" >&2; exit 1
+    fi
+}
+
+function init {
+  echo "initialize question"
+}
+
+function q {
+  source "questions/Q${argQ}"
+  question
+}
+
+function a {
+  source "questions/Q${argQ}"
+  answer
+}
+
+function e {
+  source "questions/Q${argQ}"
+  error
+}
+
+function r {
+  source "questions/Q${argQ}"
+  score
+}
+
+if [ $# -ge 3 ]
+then
+    echo "[Error] Some warning"
+    help
+    exit 1
+fi
+
+while getopts ":iq:a:e:r:" opt; do
+  case $opt in
+  i) init ;;
+  q) argQ=$OPTARG; isNumber; checkScriptExist; q ;;
+  a) argQ=$OPTARG; isNumber; checkScriptExist; a ;;
+  e) argQ=$OPTARG; isNumber; checkScriptExist; e ;;
+  r) argQ=$OPTARG; isNumber; checkScriptExist; r ;;
+  ?) echo "Usage: ckad [-i] [-q argQ] [-a argQ] [-e argQ] [-r argQ]" ;;
+  esac
+done
+
+
+
+exit 0
